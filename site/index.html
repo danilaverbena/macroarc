@@ -5,110 +5,120 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>MacroArc — Macro & FX Prediction Markets on Arc</title>
 <meta name="description" content="Multi-currency prediction markets on central bank rates, inflation and FX. Instant USDC/EURC settlement on Arc." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0a0e17; --panel: #111827; --panel2: #172136; --border: #232f48;
-    --text: #e7ecf5; --muted: #8b98b1; --accent: #4f8bff; --yes: #22c07a; --no: #f0564f;
-    --usdc: #2775ca; --eurc: #10609f; --gold: #f5b83d;
+    --bg: #ffffff; --bg2: #f7f8fa; --panel: #ffffff; --border: #e6e8ec; --border2: #d8dbe0;
+    --text: #0f1729; --muted: #5f6b7f;
+    --yes: #059862; --yes-bg: #e7f7f0; --yes-bd: #bfe8d7;
+    --no: #e5484d; --no-bg: #fdeeee; --no-bd: #f6cdd0;
+    --accent: #0f1729; --link: #2563eb;
+    --usdc: #2775ca; --eurc: #10609f; --gold: #b98a10;
+    --shadow: 0 1px 2px rgba(15,23,41,.05), 0 4px 14px rgba(15,23,41,.05);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font: 15px/1.5 'Inter', -apple-system, system-ui, sans-serif; min-height: 100vh; }
-  a { color: var(--accent); text-decoration: none; }
+  body { background: var(--bg2); color: var(--text); font: 15px/1.5 'Inter', -apple-system, system-ui, sans-serif; letter-spacing: -.011em; min-height: 100vh; }
+  a { color: var(--link); text-decoration: none; }
   .wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
-  button { cursor: pointer; border: 0; border-radius: 10px; font-weight: 600; font-family: inherit; }
-  .btn { background: var(--accent); color: #fff; padding: 9px 16px; font-size: 14px; transition: opacity .15s; }
-  .btn:hover { opacity: .88; }
-  .btn.ghost { background: var(--panel2); color: var(--text); border: 1px solid var(--border); }
+  button { cursor: pointer; border: 0; border-radius: 10px; font-weight: 600; font-family: inherit; letter-spacing: -.011em; }
+  .btn { background: var(--accent); color: #fff; padding: 9px 18px; font-size: 14px; transition: opacity .15s; border-radius: 999px; }
+  .btn:hover { opacity: .85; }
+  .btn.ghost { background: #fff; color: var(--text); border: 1px solid var(--border2); }
 
-  /* ---------- Kalshi-style top nav ---------- */
-  header { border-bottom: 1px solid var(--border); background: rgba(10,14,23,.92); backdrop-filter: blur(8px); position: sticky; top: 0; z-index: 10; }
-  .nav { display: flex; align-items: center; gap: 26px; height: 60px; }
-  .logo { font-size: 20px; font-weight: 800; letter-spacing: -.02em; white-space: nowrap; }
-  .logo span { color: var(--accent); }
-  .navlinks { display: flex; gap: 4px; flex: 1; }
-  .navlink { padding: 7px 14px; border-radius: 8px; color: var(--muted); font-weight: 600; font-size: 14.5px; cursor: pointer; }
-  .navlink:hover { color: var(--text); background: var(--panel2); }
-  .navlink.active { color: var(--text); background: var(--panel2); }
-  .navlink .dot { display: inline-block; min-width: 18px; padding: 0 5px; margin-left: 6px; border-radius: 999px; background: var(--accent); color: #fff; font-size: 11px; text-align: center; }
+  /* ---------- top nav (Kalshi-like) ---------- */
+  header { background: #fff; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; }
+  .nav { display: flex; align-items: center; gap: 22px; height: 64px; }
+  .logo { font-size: 21px; font-weight: 800; letter-spacing: -.035em; white-space: nowrap; }
+  .logo span { color: var(--yes); }
+  .navlinks { display: flex; gap: 2px; flex: 1; align-items: center; }
+  .navlink { padding: 8px 14px; border-radius: 999px; color: var(--muted); font-weight: 600; font-size: 14.5px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+  .navlink:hover { color: var(--text); background: var(--bg2); }
+  .navlink.active { color: var(--text); background: var(--bg2); }
+  .navlink .pfval { font-weight: 800; color: var(--yes); font-variant-numeric: tabular-nums; }
   .balances { display: flex; gap: 8px; align-items: center; }
-  .balchip { display: none; align-items: center; gap: 6px; background: var(--panel2); border: 1px solid var(--border); border-radius: 999px; padding: 5px 12px; font-size: 13px; font-weight: 700; }
-  .balchip .c { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-  .balchip.usdc .c { background: var(--usdc); } .balchip.eurc .c { background: var(--eurc); }
+  .balchip { display: none; flex-direction: column; align-items: flex-end; line-height: 1.15; padding: 4px 12px 4px 0; }
+  .balchip .lbl { font-size: 11px; color: var(--muted); font-weight: 600; }
+  .balchip .amt { font-size: 14.5px; font-weight: 800; font-variant-numeric: tabular-nums; }
   /* category sub-bar */
-  .subbar { border-bottom: 1px solid var(--border); background: var(--bg); }
+  .subbar { background: #fff; border-bottom: 1px solid var(--border); }
   .pills { display: flex; gap: 2px; overflow-x: auto; }
   .pill { padding: 11px 16px; color: var(--muted); font-size: 14px; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; }
   .pill:hover { color: var(--text); }
-  .pill.active { color: var(--text); border-bottom-color: var(--accent); }
+  .pill.active { color: var(--text); border-bottom-color: var(--text); }
 
-  .hero { padding: 30px 0 6px; }
-  .hero h1 { font-size: 26px; letter-spacing: -.03em; }
+  .hero { padding: 28px 0 4px; }
+  .hero h1 { font-size: 25px; letter-spacing: -.03em; font-weight: 800; }
   .hero p { color: var(--muted); margin-top: 6px; max-width: 640px; font-size: 14px; }
 
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; padding: 18px 0 60px; }
-  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 12px; box-shadow: var(--shadow); }
   .card .top { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
-  .tag { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; padding: 3px 9px; border-radius: 999px; background: var(--panel2); color: var(--muted); }
+  .tag { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; padding: 3px 9px; border-radius: 999px; background: var(--bg2); color: var(--muted); border: 1px solid var(--border); }
   .cur { font-size: 11px; font-weight: 800; padding: 3px 9px; border-radius: 999px; color: #fff; }
   .cur.USDC { background: var(--usdc); } .cur.EURC { background: var(--eurc); }
-  .q { font-weight: 650; font-size: 15.5px; line-height: 1.35; min-height: 42px; }
+  .q { font-weight: 700; font-size: 15.5px; line-height: 1.35; min-height: 42px; letter-spacing: -.015em; }
   .prob { display: flex; align-items: baseline; gap: 8px; }
-  .prob b { font-size: 26px; color: var(--yes); }
+  .prob b { font-size: 27px; color: var(--yes); font-weight: 800; font-variant-numeric: tabular-nums; }
   .prob span { color: var(--muted); font-size: 13px; }
-  .bar { height: 7px; border-radius: 6px; background: #2a3550; overflow: hidden; }
-  .bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--yes), #35d492); }
+  .bar { height: 7px; border-radius: 6px; background: #edeff2; overflow: hidden; }
+  .bar i { display: block; height: 100%; background: var(--yes); }
   .meta { display: flex; justify-content: space-between; color: var(--muted); font-size: 12.5px; }
   .actions { display: flex; gap: 8px; }
-  .actions button { flex: 1; padding: 10px 0; font-size: 14px; }
-  .byes { background: rgba(34,192,122,.15); color: var(--yes); border: 1px solid rgba(34,192,122,.35); }
-  .bno { background: rgba(240,86,79,.13); color: var(--no); border: 1px solid rgba(240,86,79,.35); }
-  .byes:hover, .bno:hover { filter: brightness(1.25); }
-  .resolved { font-weight: 700; text-align: center; padding: 9px; border-radius: 10px; background: var(--panel2); }
-  .claim { background: var(--yes); color: #06281a; padding: 10px; }
+  .actions button { flex: 1; padding: 11px 0; font-size: 14px; font-weight: 700; }
+  .byes { background: var(--yes-bg); color: var(--yes); border: 1px solid var(--yes-bd); }
+  .bno { background: var(--no-bg); color: var(--no); border: 1px solid var(--no-bd); }
+  .byes:hover { background: #d7f2e6; } .bno:hover { background: #fbdfe0; }
+  .resolved { font-weight: 700; text-align: center; padding: 9px; border-radius: 10px; background: var(--bg2); border: 1px solid var(--border); }
+  .claim { background: var(--yes); color: #fff; padding: 10px; }
   .empty { color: var(--muted); padding: 60px 0; text-align: center; grid-column: 1/-1; }
 
-  /* ---------- Portfolio ---------- */
+  /* ---------- portfolio ---------- */
   .pf-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin: 24px 0; }
-  .pf-card { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px; }
-  .pf-card .lbl { color: var(--muted); font-size: 12.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
-  .pf-card .val { font-size: 22px; font-weight: 800; margin-top: 4px; }
-  .pf-card .val small { font-size: 13px; color: var(--muted); font-weight: 600; }
-  h2.sec { font-size: 17px; margin: 26px 0 12px; }
-  table { width: 100%; border-collapse: collapse; background: var(--panel); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; font-size: 13.5px; }
-  thead th { text-align: left; color: var(--muted); font-size: 11.5px; text-transform: uppercase; letter-spacing: .05em; padding: 11px 14px; border-bottom: 1px solid var(--border); background: var(--panel2); }
-  tbody td { padding: 11px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .pf-card { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px; box-shadow: var(--shadow); }
+  .pf-card .lbl { color: var(--muted); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+  .pf-card .val { font-size: 22px; font-weight: 800; margin-top: 4px; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+  .pf-card .val small { font-size: 12.5px; color: var(--muted); font-weight: 600; }
+  .pf-card .sub { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+  h2.sec { font-size: 17px; margin: 26px 0 12px; font-weight: 800; letter-spacing: -.02em; }
+  h2.sec span { color: var(--muted); font-size: 12.5px; font-weight: 500; }
+  table { width: 100%; border-collapse: collapse; background: var(--panel); font-size: 13.5px; }
+  .tbl-wrap { overflow-x: auto; border-radius: 14px; border: 1px solid var(--border); box-shadow: var(--shadow); }
+  thead th { text-align: left; color: var(--muted); font-size: 11.5px; text-transform: uppercase; letter-spacing: .05em; padding: 11px 14px; border-bottom: 1px solid var(--border); background: var(--bg2); }
+  tbody td { padding: 12px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
   tbody tr:last-child td { border-bottom: 0; }
   .side { font-weight: 800; }
   .side.yes { color: var(--yes); } .side.no { color: var(--no); }
   .status { font-size: 11.5px; font-weight: 700; padding: 3px 10px; border-radius: 999px; white-space: nowrap; }
-  .st-open { background: rgba(79,139,255,.15); color: var(--accent); }
-  .st-pend { background: rgba(245,184,61,.14); color: var(--gold); }
-  .st-won { background: rgba(34,192,122,.15); color: var(--yes); }
-  .st-lost { background: rgba(240,86,79,.13); color: var(--no); }
-  .st-claimed { background: var(--panel2); color: var(--muted); }
-  .st-void { background: var(--panel2); color: var(--muted); }
-  .tclaim { background: var(--yes); color: #06281a; padding: 6px 12px; font-size: 12.5px; }
+  .st-open { background: #eef2ff; color: #4053c8; }
+  .st-pend { background: #fdf5e2; color: var(--gold); }
+  .st-won { background: var(--yes-bg); color: var(--yes); }
+  .st-lost { background: var(--no-bg); color: var(--no); }
+  .st-claimed, .st-void { background: var(--bg2); color: var(--muted); }
+  .tclaim { background: var(--yes); color: #fff; padding: 6px 12px; font-size: 12.5px; }
   .txa { font-family: ui-monospace, monospace; font-size: 12px; }
-  .tbl-wrap { overflow-x: auto; border-radius: 14px; }
   .note-conn { text-align: center; color: var(--muted); padding: 70px 0; }
+  .note-conn .btn { margin-top: 14px; }
 
-  footer { border-top: 1px solid var(--border); padding: 26px 0 40px; color: var(--muted); font-size: 13px; margin-top: 30px; }
+  footer { border-top: 1px solid var(--border); background: #fff; padding: 26px 0 40px; color: var(--muted); font-size: 13px; margin-top: 30px; }
   footer .row { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 6px; }
 
-  .overlay { position: fixed; inset: 0; background: rgba(4,7,13,.72); display: none; align-items: center; justify-content: center; z-index: 50; }
+  .overlay { position: fixed; inset: 0; background: rgba(15,23,41,.45); display: none; align-items: center; justify-content: center; z-index: 50; }
   .overlay.open { display: flex; }
-  .modal { background: var(--panel); border: 1px solid var(--border); border-radius: 18px; padding: 24px; width: min(420px, 92vw); }
-  .modal h3 { font-size: 16px; margin-bottom: 6px; }
+  .modal { background: #fff; border: 1px solid var(--border); border-radius: 18px; padding: 24px; width: min(420px, 92vw); box-shadow: 0 20px 60px rgba(15,23,41,.2); }
+  .modal h3 { font-size: 16px; margin-bottom: 6px; font-weight: 800; }
   .modal .side { font-weight: 800; }
-  .modal input { width: 100%; margin: 14px 0 6px; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--panel2); color: var(--text); font-size: 16px; }
+  .modal input { width: 100%; margin: 14px 0 6px; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border2); background: #fff; color: var(--text); font-size: 16px; font-family: inherit; }
+  .modal input:focus { outline: 2px solid #bcd0ff; }
   .modal .note { color: var(--muted); font-size: 12.5px; }
   .modal .mrow { display: flex; gap: 10px; margin-top: 16px; }
   .modal .mrow button { flex: 1; padding: 12px 0; }
-  .toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); background: var(--panel2); border: 1px solid var(--border); padding: 12px 20px; border-radius: 12px; font-size: 14px; display: none; z-index: 60; max-width: 92vw; }
+  .toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); background: var(--text); color: #fff; padding: 12px 20px; border-radius: 12px; font-size: 14px; display: none; z-index: 60; max-width: 92vw; box-shadow: 0 10px 30px rgba(15,23,41,.25); }
   @media (max-width: 720px) {
     .nav { gap: 10px; }
     .balchip { display: none !important; }
-    .hero h1 { font-size: 21px; }
+    .hero h1 { font-size: 20px; }
   }
 </style>
 </head>
@@ -118,11 +128,10 @@
     <div class="logo">Macro<span>Arc</span></div>
     <nav class="navlinks">
       <div class="navlink" data-view="markets" onclick="go('markets')">Markets</div>
-      <div class="navlink" data-view="portfolio" onclick="go('portfolio')">Portfolio<span class="dot" id="posCount" style="display:none">0</span></div>
+      <div class="navlink" data-view="portfolio" onclick="go('portfolio')">Portfolio <span class="pfval" id="navPf" style="display:none">$0.00</span></div>
     </nav>
     <div class="balances">
-      <span class="balchip usdc" id="balUsdc"><span class="c"></span><span>—</span></span>
-      <span class="balchip eurc" id="balEurc"><span class="c"></span><span>—</span></span>
+      <span class="balchip" id="cashChip"><span class="lbl">Cash</span><span class="amt" id="cashAmt">$0.00</span></span>
       <button class="btn" id="connect">Connect wallet</button>
     </div>
   </div>
@@ -145,20 +154,23 @@
 
 <!-- ================= PORTFOLIO VIEW ================= -->
 <div class="wrap" id="view-portfolio" style="display:none">
-  <div id="pf-disconnected" class="note-conn">Connect your wallet to see positions and history.</div>
+  <div id="pf-disconnected" class="note-conn">
+    <div>Connect your wallet to see positions and history.</div>
+    <button class="btn" onclick="connect(false)">Connect wallet</button>
+  </div>
   <div id="pf-body" style="display:none">
     <div class="pf-summary">
-      <div class="pf-card"><div class="lbl">Wallet</div><div class="val" id="pfWallet">—</div></div>
-      <div class="pf-card"><div class="lbl">At stake</div><div class="val" id="pfStaked">—</div></div>
-      <div class="pf-card"><div class="lbl">Claimable</div><div class="val" id="pfClaimable">—</div></div>
-      <div class="pf-card"><div class="lbl">Lifetime volume</div><div class="val" id="pfVolume">—</div></div>
+      <div class="pf-card"><div class="lbl">Portfolio</div><div class="val" id="pfTotal">—</div><div class="sub" id="pfWallet"></div></div>
+      <div class="pf-card"><div class="lbl">Cash</div><div class="val" id="pfCash">—</div><div class="sub" id="pfCashSub"></div></div>
+      <div class="pf-card"><div class="lbl">At stake</div><div class="val" id="pfStaked">—</div><div class="sub" id="pfStakedSub"></div></div>
+      <div class="pf-card"><div class="lbl">Claimable</div><div class="val" id="pfClaimable">—</div><div class="sub" id="pfClaimSub"></div></div>
     </div>
     <h2 class="sec">Positions</h2>
     <div class="tbl-wrap"><table>
       <thead><tr><th>Market</th><th>Side</th><th>Stake</th><th>Implied YES</th><th>Max payout</th><th>Status</th><th></th></tr></thead>
       <tbody id="posRows"><tr><td colspan="7" style="color:var(--muted)">Loading…</td></tr></tbody>
     </table></div>
-    <h2 class="sec">History <span style="color:var(--muted);font-size:12.5px;font-weight:500">— stored onchain (contract events), always recoverable</span></h2>
+    <h2 class="sec">History <span>— stored onchain (contract events), always recoverable</span></h2>
     <div class="tbl-wrap"><table>
       <thead><tr><th>Date</th><th>Action</th><th>Market</th><th>Side</th><th>Amount</th><th>Tx</th></tr></thead>
       <tbody id="histRows"><tr><td colspan="6" style="color:var(--muted)">Loading…</td></tr></tbody>
@@ -219,7 +231,10 @@ const $ = (id) => document.getElementById(id);
 const provider = new ethers.JsonRpcProvider(RPC);
 const reader = new ethers.Contract(CONTRACT, ABI, provider);
 const iface = new ethers.Interface(ABI);
+const erc20i = new ethers.Interface(ERC20_ABI);
 let signer = null, userAddr = null, markets = [], filter = "all", pending = null, view = "markets";
+let eurUsd = 1.10; // fallback; refreshed from FX API
+let lastStakes = null;
 
 $("explorerLink").href = `${EXPLORER}/address/${CONTRACT}`;
 
@@ -227,14 +242,28 @@ function toast(msg, ms = 5000) {
   const t = $("toast"); t.textContent = msg; t.style.display = "block";
   clearTimeout(t._h); t._h = setTimeout(() => (t.style.display = "none"), ms);
 }
-const fmt = (v) => Number(ethers.formatUnits(v, 6)).toLocaleString(undefined, { maximumFractionDigits: 2 });
-const dateStr = (ts) => new Date(Number(ts) * 1000).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
-const dtStr = (ts) => new Date(Number(ts) * 1000).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+const fmt = (v) => Number(ethers.formatUnits(v, 6)).toLocaleString("en-US", { maximumFractionDigits: 2 });
+const usd = (n) => "$" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const toUsd = (v6, cur) => Number(ethers.formatUnits(v6, 6)) * (cur === "EURC" ? eurUsd : 1);
+const dateStr = (ts) => new Date(Number(ts) * 1000).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+const dtStr = (ts) => new Date(Number(ts) * 1000).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+
+async function withRetry(fn, tries = 3) {
+  let err;
+  for (let i = 0; i < tries; i++) {
+    try { return await fn(); } catch (e) { err = e; await new Promise((r) => setTimeout(r, 400 * (i + 1))); }
+  }
+  throw err;
+}
+
+fetch("https://api.frankfurter.app/latest?from=EUR&to=USD")
+  .then((r) => r.json()).then((j) => { if (j?.rates?.USD) eurUsd = j.rates.USD; refreshPositions(); })
+  .catch(() => {});
 
 /* ---------------- routing ---------------- */
 function go(v) {
   view = v;
-  location.hash = v === "markets" ? "" : "#" + v;
+  history.replaceState(null, "", v === "markets" ? "#" : "#" + v);
   $("view-markets").style.display = v === "markets" ? "" : "none";
   $("view-portfolio").style.display = v === "portfolio" ? "" : "none";
   $("subbar").style.display = v === "markets" ? "" : "none";
@@ -246,18 +275,18 @@ window.addEventListener("hashchange", () => go(location.hash === "#portfolio" ? 
 /* ---------------- markets ---------------- */
 async function load() {
   try {
-    const n = Number(await reader.marketCount());
+    const n = Number(await withRetry(() => reader.marketCount()));
     const list = [];
-    for (let i = 0; i < n; i++) list.push(reader.getMarket(i).then((m) => ({ id: i, m })));
+    for (let i = 0; i < n; i++) list.push(withRetry(() => reader.getMarket(i)).then((m) => ({ id: i, m })));
     markets = await Promise.all(list);
     renderMarkets();
-    if (userAddr) refreshUser();
+    if (userAddr) refreshPositions();
   } catch (e) {
-    $("grid").innerHTML = `<div class="empty">Could not load markets: ${e.message}</div>`;
+    $("grid").innerHTML = `<div class="empty">Could not load markets: ${e.shortMessage || e.message}</div>`;
   }
 }
 
-async function renderMarkets() {
+function renderMarkets() {
   const g = $("grid");
   const rows = markets.filter(({ m }) => m.category !== "test" && (filter === "all" || m.category === filter));
   if (!rows.length) { g.innerHTML = `<div class="empty">No markets in this category yet.</div>`; return; }
@@ -300,40 +329,98 @@ async function ensureChain(eth) {
 async function connect(silent) {
   if (!window.ethereum) { if (!silent) toast("No wallet found — install MetaMask (or any EVM wallet)."); return; }
   try {
-    if (!silent) await ensureChain(window.ethereum);
     const bp = new ethers.BrowserProvider(window.ethereum);
     const accts = silent ? await bp.send("eth_accounts", []) : await bp.send("eth_requestAccounts", []);
     if (!accts.length) return;
+    if (!silent) { try { await ensureChain(window.ethereum); } catch (_) { /* reads work regardless of wallet network */ } }
     signer = await bp.getSigner();
     userAddr = (await signer.getAddress()).toLowerCase();
     $("connect").textContent = userAddr.slice(0, 6) + "…" + userAddr.slice(-4);
     $("connect").classList.add("ghost");
-    if (!silent) toast("Connected to Arc testnet");
-    refreshUser();
+    if (!silent) toast("Connected");
+    await refreshPositions();
     if (view === "portfolio") renderPortfolio();
   } catch (e) { if (!silent) toast("Connect failed: " + (e.shortMessage || e.message)); }
 }
 $("connect").onclick = () => connect(false);
+window.connect = connect;
 
-async function refreshUser() {
+/* ------- positions core: single source of truth ------- */
+async function loadStakes() {
+  if (!markets.length || !userAddr) return [];
+  const rows = markets.filter(({ m }) => m.category !== "test");
+  const out = [];
+  for (const { id, m } of rows) {
+    const [ys, ns, cl] = await Promise.all([
+      withRetry(() => reader.yesStake(id, userAddr)),
+      withRetry(() => reader.noStake(id, userAddr)),
+      withRetry(() => reader.claimed(id, userAddr)),
+    ]);
+    out.push({ id, m, ys, ns, cl });
+  }
+  lastStakes = out;
+  return out;
+}
+
+function payoutFor(stake, winPool, losePool) {
+  if (stake === 0n || winPool === 0n) return 0n;
+  const gross = (losePool * stake) / winPool;
+  return stake + gross - (gross * 100n) / 10000n;
+}
+
+function positionRows(stakes) {
+  const list = [];
+  for (const s of stakes) {
+    const cur = TOKENS[s.m.token.toLowerCase()];
+    const open = s.m.outcome === 0n && Date.now() / 1000 < Number(s.m.closeTime);
+    for (const [side, stake] of [["YES", s.ys], ["NO", s.ns]]) {
+      if (stake === 0n) continue;
+      const yesWon = s.m.outcome === 1n, noWon = s.m.outcome === 2n, voided = s.m.outcome === 3n;
+      const winPool = side === "YES" ? s.m.yesPool : s.m.noPool;
+      const losePool = side === "YES" ? s.m.noPool : s.m.yesPool;
+      const maxPay = payoutFor(stake, winPool, losePool);
+      let status = "Open", stCls = "st-open", canClaim = false, payNow = 0n, live = true;
+      if (s.m.outcome === 0n) { if (!open) { status = "Awaiting resolution"; stCls = "st-pend"; } }
+      else if (voided) { live = false; status = s.cl ? "Refunded" : "Void — refund"; stCls = "st-void"; if (!s.cl) { canClaim = true; payNow = stake; } }
+      else if ((side === "YES" && yesWon) || (side === "NO" && noWon)) {
+        live = false; status = s.cl ? "Claimed" : "Won"; stCls = s.cl ? "st-claimed" : "st-won";
+        if (!s.cl) { canClaim = true; payNow = maxPay; }
+      } else { live = false; status = "Lost"; stCls = "st-lost"; }
+      list.push({ id: s.id, m: s.m, cur, side, stake, maxPay, status, stCls, canClaim, payNow, live });
+    }
+  }
+  return list;
+}
+
+/* nav $ value + cash chip + dot; runs on every connect/load/bet/claim */
+async function refreshPositions() {
   if (!userAddr) return;
   try {
     const [u, e] = await Promise.all([
-      provider.call({ to: USDC, data: iface20("balanceOf", userAddr) }),
-      provider.call({ to: EURC, data: iface20("balanceOf", userAddr) }),
+      withRetry(() => provider.call({ to: USDC, data: erc20i.encodeFunctionData("balanceOf", [userAddr]) })),
+      withRetry(() => provider.call({ to: EURC, data: erc20i.encodeFunctionData("balanceOf", [userAddr]) })),
     ]);
-    setChip("balUsdc", fmt(BigInt(u)) + " USDC");
-    setChip("balEurc", fmt(BigInt(e)) + " EURC");
-    const st = await loadStakes();
-    const n = st.filter((s) => s.ys > 0n || s.ns > 0n).length;
-    const dot = $("posCount");
-    dot.style.display = n ? "inline-block" : "none";
-    dot.textContent = n;
+    const cashU = BigInt(u), cashE = BigInt(e);
+    const cash = toUsd(cashU, "USDC") + toUsd(cashE, "EURC");
+    $("cashChip").style.display = "flex";
+    $("cashAmt").textContent = usd(cash);
+    window._cash = { cashU, cashE, cash };
+
+    const stakes = await loadStakes();
+    const pos = positionRows(stakes);
+    // Portfolio $ = live stakes + unclaimed payouts (like Kalshi's positions value)
+    let pf = 0;
+    for (const p of pos) {
+      if (p.live) pf += toUsd(p.stake, p.cur);
+      else if (p.canClaim) pf += toUsd(p.payNow, p.cur);
+    }
+    const nav = $("navPf");
+    nav.style.display = "";
+    nav.textContent = usd(pf);
+    window._pf = pf;
+    if (view === "portfolio") renderTables(stakes, pos);
   } catch (_) {}
 }
-const erc20i = new ethers.Interface(ERC20_ABI);
-function iface20(fn, ...args) { return erc20i.encodeFunctionData(fn, args); }
-function setChip(id, text) { const el = $(id); el.style.display = "inline-flex"; el.lastElementChild.textContent = text; }
 
 /* ---------------- betting ---------------- */
 window.openBet = (id, yes) => {
@@ -359,6 +446,7 @@ $("mconfirm").onclick = async () => {
   const cur = TOKENS[m.token.toLowerCase()];
   try {
     $("mconfirm").disabled = true;
+    await ensureChain(window.ethereum);
     const token = new ethers.Contract(m.token, ERC20_ABI, signer);
     const bal = await token.balanceOf(userAddr);
     if (bal < units) throw new Error(`Insufficient ${cur} balance (have ${fmt(bal)}). Get testnet tokens at faucet.circle.com`);
@@ -374,7 +462,8 @@ $("mconfirm").onclick = async () => {
     toast(`Bet placed: ${amt} ${cur} on ${yes ? "YES" : "NO"} ✓`);
     $("overlay").classList.remove("open");
     invalidateHistory();
-    load();
+    await load();
+    await refreshPositions();
   } catch (e) { toast("Failed: " + (e.shortMessage || e.reason || e.message), 8000); }
   finally { $("mconfirm").disabled = false; }
 };
@@ -382,78 +471,65 @@ $("mconfirm").onclick = async () => {
 window.doClaim = async (id) => {
   if (!signer) return toast("Connect your wallet first.");
   try {
+    await ensureChain(window.ethereum);
     const writer = new ethers.Contract(CONTRACT, ABI, signer);
     toast("Claiming…");
     await (await writer.claim(id)).wait();
     toast("Payout claimed ✓");
     invalidateHistory();
-    load();
-    renderPortfolio();
+    await load();
+    await refreshPositions();
   } catch (e) { toast("Claim failed: " + (e.shortMessage || e.reason || e.message), 8000); }
 };
 
-/* ---------------- portfolio ---------------- */
-async function loadStakes() {
-  const rows = markets.filter(({ m }) => m.category !== "test");
-  return Promise.all(rows.map(async ({ id, m }) => {
-    const [ys, ns, cl] = await Promise.all([reader.yesStake(id, userAddr), reader.noStake(id, userAddr), reader.claimed(id, userAddr)]);
-    return { id, m, ys, ns, cl };
-  }));
-}
-
-function payoutFor(m, stake, winPool, losePool) {
-  if (stake === 0n || winPool === 0n) return 0n;
-  const gross = (losePool * stake) / winPool;
-  return stake + gross - (gross * 100n) / 10000n;
-}
-
+/* ---------------- portfolio view ---------------- */
 async function renderPortfolio() {
   const conn = !!userAddr;
   $("pf-disconnected").style.display = conn ? "none" : "";
   $("pf-body").style.display = conn ? "" : "none";
   if (!conn) { connect(true); return; }
-  if (!markets.length) await load();
-
-  $("pfWallet").innerHTML = `${userAddr.slice(0, 6)}…${userAddr.slice(-4)} <small>Arc testnet</small>`;
-
-  const stakes = await loadStakes();
-  const totals = { USDC: 0n, EURC: 0n }, claimable = { USDC: 0n, EURC: 0n };
-  const rows = [];
-  for (const s of stakes) {
-    if (s.ys === 0n && s.ns === 0n) continue;
-    const cur = TOKENS[s.m.token.toLowerCase()];
-    const open = s.m.outcome === 0n && Date.now() / 1000 < Number(s.m.closeTime);
-    for (const [side, stake] of [["YES", s.ys], ["NO", s.ns]]) {
-      if (stake === 0n) continue;
-      const yesWon = s.m.outcome === 1n, noWon = s.m.outcome === 2n, voided = s.m.outcome === 3n;
-      const winPool = side === "YES" ? s.m.yesPool : s.m.noPool;
-      const losePool = side === "YES" ? s.m.noPool : s.m.yesPool;
-      const maxPay = payoutFor(s.m, stake, winPool, losePool);
-      let status, stCls, canClaim = false, payNow = 0n;
-      if (s.m.outcome === 0n) { status = open ? "Open" : "Awaiting resolution"; stCls = open ? "st-open" : "st-pend"; totals[cur] += stake; }
-      else if (voided) { status = s.cl ? "Refunded" : "Void — refund"; stCls = "st-void"; if (!s.cl) { canClaim = true; payNow = stake; } }
-      else if ((side === "YES" && yesWon) || (side === "NO" && noWon)) {
-        status = s.cl ? "Claimed" : "Won"; stCls = s.cl ? "st-claimed" : "st-won";
-        if (!s.cl) { canClaim = true; payNow = maxPay; }
-      } else { status = "Lost"; stCls = "st-lost"; }
-      if (canClaim) claimable[cur] += payNow;
-      const total = s.m.yesPool + s.m.noPool;
-      const pct = total > 0n ? Number((s.m.yesPool * 10000n) / total) / 100 : 50;
-      rows.push(`<tr>
-        <td style="max-width:340px">${s.m.question}</td>
-        <td><span class="side ${side.toLowerCase()}">${side}</span></td>
-        <td>${fmt(stake)} ${cur}</td>
-        <td>${pct.toFixed(0)}%</td>
-        <td>${fmt(maxPay)} ${cur}</td>
-        <td><span class="status ${stCls}">${status}</span></td>
-        <td>${canClaim ? `<button class="tclaim" onclick="doClaim(${s.id})">Claim</button>` : ""}</td>
-      </tr>`);
-    }
+  try {
+    if (!markets.length) await load();
+    const stakes = lastStakes || (await loadStakes());
+    renderTables(stakes, positionRows(stakes));
+    refreshPositions();
+  } catch (e) {
+    $("posRows").innerHTML = `<tr><td colspan="7" style="color:var(--no)">Failed to load positions: ${e.shortMessage || e.message}. <a href="javascript:renderPortfolio()">Retry</a></td></tr>`;
   }
-  $("posRows").innerHTML = rows.length ? rows.join("") : `<tr><td colspan="7" style="color:var(--muted)">No positions yet — pick a market and place your first bet.</td></tr>`;
-  $("pfStaked").textContent = `${fmt(totals.USDC)} USDC · ${fmt(totals.EURC)} EURC`;
-  $("pfClaimable").textContent = `${fmt(claimable.USDC)} USDC · ${fmt(claimable.EURC)} EURC`;
+}
 
+function renderTables(stakes, pos) {
+  $("pfWallet").textContent = userAddr.slice(0, 6) + "…" + userAddr.slice(-4) + " · Arc testnet";
+
+  const totals = { USDC: 0n, EURC: 0n }, claimable = { USDC: 0n, EURC: 0n };
+  const rows = pos.map((p) => {
+    if (p.live) totals[p.cur] += p.stake;
+    if (p.canClaim) claimable[p.cur] += p.payNow;
+    const total = p.m.yesPool + p.m.noPool;
+    const pct = total > 0n ? Number((p.m.yesPool * 10000n) / total) / 100 : 50;
+    return `<tr>
+      <td style="max-width:340px">${p.m.question}</td>
+      <td><span class="side ${p.side.toLowerCase()}">${p.side}</span></td>
+      <td>${fmt(p.stake)} ${p.cur}</td>
+      <td>${pct.toFixed(0)}%</td>
+      <td>${fmt(p.maxPay)} ${p.cur}</td>
+      <td><span class="status ${p.stCls}">${p.status}</span></td>
+      <td>${p.canClaim ? `<button class="tclaim" onclick="doClaim(${p.id})">Claim</button>` : ""}</td>
+    </tr>`;
+  });
+  $("posRows").innerHTML = rows.length ? rows.join("") : `<tr><td colspan="7" style="color:var(--muted)">No positions yet — pick a market and place your first bet.</td></tr>`;
+
+  const stakedUsd = toUsd(totals.USDC, "USDC") + toUsd(totals.EURC, "EURC");
+  const claimUsd = toUsd(claimable.USDC, "USDC") + toUsd(claimable.EURC, "EURC");
+  $("pfStaked").textContent = usd(stakedUsd);
+  $("pfStakedSub").textContent = `${fmt(totals.USDC)} USDC · ${fmt(totals.EURC)} EURC`;
+  $("pfClaimable").textContent = usd(claimUsd);
+  $("pfClaimSub").textContent = `${fmt(claimable.USDC)} USDC · ${fmt(claimable.EURC)} EURC`;
+  $("pfTotal").textContent = usd(stakedUsd + claimUsd);
+  if (window._cash) {
+    $("pfCash").textContent = usd(window._cash.cash);
+    $("pfCashSub").textContent = `${fmt(window._cash.cashU)} USDC · ${fmt(window._cash.cashE)} EURC`;
+  }
   renderHistory();
 }
 
@@ -465,16 +541,20 @@ async function fetchHistory() {
   const cached = JSON.parse(localStorage.getItem(histKey()) || "null");
   let entries = cached ? cached.entries : [];
   const fromBlock = cached ? cached.lastBlock + 1 : DEPLOY_BLOCK;
-  const latest = await provider.getBlockNumber();
+  const latest = await withRetry(() => provider.getBlockNumber());
   if (latest >= fromBlock) {
     const userTopic = ethers.zeroPadValue(userAddr, 32);
-    const logs = await provider.getLogs({
-      address: CONTRACT, fromBlock, toBlock: latest,
-      topics: [[iface.getEvent("BetPlaced").topicHash, iface.getEvent("Claimed").topicHash], null, userTopic],
-    });
+    const logs = [];
+    for (let from = fromBlock; from <= latest; from += 5000) {
+      const to = Math.min(from + 4999, latest);
+      logs.push(...await withRetry(() => provider.getLogs({
+        address: CONTRACT, fromBlock: from, toBlock: to,
+        topics: [[iface.getEvent("BetPlaced").topicHash, iface.getEvent("Claimed").topicHash], null, userTopic],
+      })));
+    }
     const blockTs = {};
     await Promise.all([...new Set(logs.map((l) => l.blockNumber))].map(async (bn) => {
-      blockTs[bn] = (await provider.getBlock(bn)).timestamp;
+      blockTs[bn] = (await withRetry(() => provider.getBlock(bn))).timestamp;
     }));
     for (const lg of logs) {
       const p = iface.parseLog(lg);
@@ -496,12 +576,10 @@ async function fetchHistory() {
 async function renderHistory() {
   try {
     const entries = await fetchHistory();
-    let volume = { USDC: 0n, EURC: 0n };
     const rows = entries.map((e) => {
       const mk = markets.find((x) => x.id === e.id);
       const cur = mk ? TOKENS[mk.m.token.toLowerCase()] : "";
       const q = mk ? mk.m.question : `Market #${e.id}`;
-      if (e.action === "Bet" && cur) volume[cur] += BigInt(e.amount);
       return `<tr>
         <td style="white-space:nowrap">${dtStr(e.ts)}</td>
         <td><b>${e.action}</b></td>
@@ -512,9 +590,8 @@ async function renderHistory() {
       </tr>`;
     });
     $("histRows").innerHTML = rows.length ? rows.join("") : `<tr><td colspan="6" style="color:var(--muted)">No activity yet.</td></tr>`;
-    $("pfVolume").textContent = `${fmt(volume.USDC)} USDC · ${fmt(volume.EURC)} EURC`;
   } catch (e) {
-    $("histRows").innerHTML = `<tr><td colspan="6" style="color:var(--muted)">Could not load history: ${e.shortMessage || e.message}</td></tr>`;
+    $("histRows").innerHTML = `<tr><td colspan="6" style="color:var(--muted)">Could not load history: ${e.shortMessage || e.message} <a href="javascript:renderHistory()">Retry</a></td></tr>`;
   }
 }
 
@@ -527,11 +604,11 @@ document.querySelectorAll(".pill").forEach((p) => (p.onclick = () => {
 }));
 
 if (window.ethereum) {
-  window.ethereum.on?.("accountsChanged", () => { location.reload(); });
+  window.ethereum.on?.("accountsChanged", () => location.reload());
 }
 go(location.hash === "#portfolio" ? "portfolio" : "markets");
 load().then(() => connect(true));
-setInterval(load, 30000);
+setInterval(() => { load(); }, 30000);
 </script>
 </body>
 </html>
