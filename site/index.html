@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MacroArc — Macro & FX Prediction Markets on Arc</title>
+<meta name="description" content="Multi-currency prediction markets on central bank rates, inflation and FX. Instant USDC/EURC settlement on Arc." />
+<style>
+  :root {
+    --bg: #0a0e17; --panel: #111827; --panel2: #172136; --border: #232f48;
+    --text: #e7ecf5; --muted: #8b98b1; --accent: #4f8bff; --yes: #22c07a; --no: #f0564f;
+    --usdc: #2775ca; --eurc: #10609f;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font: 15px/1.5 'Inter', -apple-system, system-ui, sans-serif; min-height: 100vh; }
+  a { color: var(--accent); text-decoration: none; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+  header { border-bottom: 1px solid var(--border); background: rgba(10,14,23,.85); backdrop-filter: blur(8px); position: sticky; top: 0; z-index: 10; }
+  .nav { display: flex; align-items: center; justify-content: space-between; height: 62px; }
+  .logo { font-size: 20px; font-weight: 800; letter-spacing: -.02em; }
+  .logo span { color: var(--accent); }
+  .logo small { display:block; font-size: 11px; font-weight: 500; color: var(--muted); letter-spacing: 0; }
+  button { cursor: pointer; border: 0; border-radius: 10px; font-weight: 600; font-family: inherit; }
+  .btn { background: var(--accent); color: #fff; padding: 10px 18px; font-size: 14px; transition: opacity .15s; }
+  .btn:hover { opacity: .88; }
+  .btn.ghost { background: var(--panel2); color: var(--text); border: 1px solid var(--border); }
+  .hero { padding: 44px 0 10px; }
+  .hero h1 { font-size: 32px; letter-spacing: -.03em; line-height: 1.15; }
+  .hero p { color: var(--muted); margin-top: 10px; max-width: 640px; }
+  .pills { display: flex; gap: 8px; margin: 22px 0 8px; flex-wrap: wrap; }
+  .pill { background: var(--panel2); border: 1px solid var(--border); color: var(--muted); padding: 6px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .pill.active { color: #fff; background: var(--accent); border-color: var(--accent); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; padding: 18px 0 60px; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+  .card .top { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+  .tag { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; padding: 3px 9px; border-radius: 999px; background: var(--panel2); color: var(--muted); }
+  .cur { font-size: 11px; font-weight: 800; padding: 3px 9px; border-radius: 999px; color: #fff; }
+  .cur.USDC { background: var(--usdc); } .cur.EURC { background: var(--eurc); }
+  .q { font-weight: 650; font-size: 15.5px; line-height: 1.35; min-height: 42px; }
+  .prob { display: flex; align-items: baseline; gap: 8px; }
+  .prob b { font-size: 26px; color: var(--yes); }
+  .prob span { color: var(--muted); font-size: 13px; }
+  .bar { height: 7px; border-radius: 6px; background: #2a3550; overflow: hidden; }
+  .bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--yes), #35d492); }
+  .meta { display: flex; justify-content: space-between; color: var(--muted); font-size: 12.5px; }
+  .actions { display: flex; gap: 8px; }
+  .actions button { flex: 1; padding: 10px 0; font-size: 14px; }
+  .byes { background: rgba(34,192,122,.15); color: var(--yes); border: 1px solid rgba(34,192,122,.35); }
+  .bno { background: rgba(240,86,79,.13); color: var(--no); border: 1px solid rgba(240,86,79,.35); }
+  .byes:hover, .bno:hover { filter: brightness(1.25); }
+  .resolved { font-weight: 700; text-align: center; padding: 9px; border-radius: 10px; background: var(--panel2); }
+  .claim { background: var(--yes); color: #06281a; padding: 10px; }
+  .empty { color: var(--muted); padding: 60px 0; text-align: center; grid-column: 1/-1; }
+  footer { border-top: 1px solid var(--border); padding: 26px 0 40px; color: var(--muted); font-size: 13px; }
+  footer .row { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 6px; }
+  /* modal */
+  .overlay { position: fixed; inset: 0; background: rgba(4,7,13,.72); display: none; align-items: center; justify-content: center; z-index: 50; }
+  .overlay.open { display: flex; }
+  .modal { background: var(--panel); border: 1px solid var(--border); border-radius: 18px; padding: 24px; width: min(420px, 92vw); }
+  .modal h3 { font-size: 16px; margin-bottom: 6px; }
+  .modal .side { font-weight: 800; }
+  .modal input { width: 100%; margin: 14px 0 6px; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--panel2); color: var(--text); font-size: 16px; }
+  .modal .note { color: var(--muted); font-size: 12.5px; }
+  .modal .mrow { display: flex; gap: 10px; margin-top: 16px; }
+  .modal .mrow button { flex: 1; padding: 12px 0; }
+  .toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); background: var(--panel2); border: 1px solid var(--border); padding: 12px 20px; border-radius: 12px; font-size: 14px; display: none; z-index: 60; max-width: 92vw; }
+  .addr { font-family: ui-monospace, monospace; font-size: 13px; }
+</style>
+</head>
+<body>
+<header><div class="wrap nav">
+  <div class="logo">Macro<span>Arc</span><small>macro & FX prediction markets · Arc testnet</small></div>
+  <button class="btn" id="connect">Connect wallet</button>
+</div></header>
+
+<div class="wrap">
+  <section class="hero">
+    <h1>Trade the macro calendar.<br/>Settle instantly in USDC & EURC.</h1>
+    <p>Parimutuel markets on central bank decisions, inflation prints and FX levels — with fiat-denominated gas and deterministic settlement on Arc, Circle's stablecoin-native L1.</p>
+  </section>
+  <div class="pills" id="pills">
+    <div class="pill active" data-f="all">All</div>
+    <div class="pill" data-f="rates">Central banks</div>
+    <div class="pill" data-f="inflation">Inflation</div>
+    <div class="pill" data-f="fx">FX</div>
+  </div>
+  <div class="grid" id="grid"><div class="empty">Loading markets from Arc testnet…</div></div>
+</div>
+
+<footer><div class="wrap">
+  <div>MacroArc · running on <a href="https://www.arc.io" target="_blank">Arc</a> public testnet · settlement in USDC & EURC</div>
+  <div class="row">
+    <a id="explorerLink" target="_blank">Contract on ArcScan</a>
+    <a href="https://faucet.circle.com" target="_blank">Get testnet USDC/EURC</a>
+    <span>Chain ID 5042002</span>
+  </div>
+</div></footer>
+
+<div class="overlay" id="overlay"><div class="modal">
+  <h3 id="mq"></h3>
+  <div>Position: <span class="side" id="mside"></span> · settles in <span id="mcur"></span></div>
+  <input id="mamount" type="number" min="0" step="0.5" placeholder="Amount" />
+  <div class="note">Parimutuel pool: payout = your stake + pro-rata share of the losing pool (1% fee on winnings). Gas is paid in USDC.</div>
+  <div class="mrow">
+    <button class="btn ghost" id="mcancel">Cancel</button>
+    <button class="btn" id="mconfirm">Approve & bet</button>
+  </div>
+</div></div>
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js"></script>
+<script>
+const CONTRACT = "0xff95939b9eda771188ae5be523becc2098ffdbe7";
+const RPC = "https://rpc.testnet.arc.network";
+const CHAIN_ID = 5042002;
+const CHAIN_HEX = "0x4CEF52";
+const EXPLORER = "https://testnet.arcscan.app";
+const TOKENS = {
+  "0x3600000000000000000000000000000000000000": "USDC",
+  "0x89b50855aa3be2f677cd6303cec089b5f319d72a": "EURC",
+};
+const ABI = [
+  "function marketCount() view returns (uint256)",
+  "function getMarket(uint256) view returns (tuple(string question,string category,string resolutionSource,address token,uint64 closeTime,uint64 resolveTime,uint8 outcome,uint128 yesPool,uint128 noPool))",
+  "function bet(uint256 id, bool yes, uint128 amount)",
+  "function claim(uint256 id)",
+  "function yesStake(uint256,address) view returns (uint128)",
+  "function noStake(uint256,address) view returns (uint128)",
+  "function claimed(uint256,address) view returns (bool)",
+];
+const ERC20_ABI = [
+  "function approve(address,uint256) returns (bool)",
+  "function allowance(address,address) view returns (uint256)",
+  "function balanceOf(address) view returns (uint256)",
+];
+
+const $ = (id) => document.getElementById(id);
+const provider = new ethers.JsonRpcProvider(RPC);
+const reader = new ethers.Contract(CONTRACT, ABI, provider);
+let signer = null, userAddr = null, markets = [], filter = "all", pending = null;
+
+$("explorerLink").href = `${EXPLORER}/address/${CONTRACT}`;
+
+function toast(msg, ms = 5000) {
+  const t = $("toast"); t.textContent = msg; t.style.display = "block";
+  clearTimeout(t._h); t._h = setTimeout(() => (t.style.display = "none"), ms);
+}
+const fmt = (v) => Number(ethers.formatUnits(v, 6)).toLocaleString(undefined, { maximumFractionDigits: 2 });
+const dateStr = (ts) => new Date(Number(ts) * 1000).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+
+async function load() {
+  try {
+    const n = Number(await reader.marketCount());
+    const list = [];
+    for (let i = 0; i < n; i++) list.push(reader.getMarket(i).then((m) => ({ id: i, m })));
+    markets = await Promise.all(list);
+    render();
+  } catch (e) {
+    $("grid").innerHTML = `<div class="empty">Could not load markets: ${e.message}</div>`;
+  }
+}
+
+async function render() {
+  const g = $("grid");
+  const rows = markets.filter(({ m }) => m.category !== "test" && (filter === "all" || m.category === filter));
+  if (!rows.length) { g.innerHTML = `<div class="empty">No markets in this category yet.</div>`; return; }
+  const stakes = {};
+  if (signer && userAddr) {
+    await Promise.all(rows.map(async ({ id }) => {
+      const [ys, ns, cl] = await Promise.all([reader.yesStake(id, userAddr), reader.noStake(id, userAddr), reader.claimed(id, userAddr)]);
+      stakes[id] = { ys, ns, cl };
+    }));
+  }
+  g.innerHTML = rows.map(({ id, m }) => {
+    const cur = TOKENS[m.token.toLowerCase()] || "TOKEN";
+    const total = m.yesPool + m.noPool;
+    const pct = total > 0n ? Number((m.yesPool * 10000n) / total) / 100 : 50;
+    const open = m.outcome === 0n && Date.now() / 1000 < Number(m.closeTime);
+    const outcomeStr = ["", "Resolved: YES", "Resolved: NO", "Voided"][Number(m.outcome)];
+    const st = stakes[id];
+    const canClaim = st && !st.cl && m.outcome !== 0n &&
+      ((m.outcome === 1n && st.ys > 0n) || (m.outcome === 2n && st.ns > 0n) || (m.outcome === 3n && (st.ys > 0n || st.ns > 0n)));
+    const myPos = st && (st.ys > 0n || st.ns > 0n)
+      ? `<div class="meta"><span>Your position</span><span>${st.ys > 0n ? "YES " + fmt(st.ys) : ""} ${st.ns > 0n ? "NO " + fmt(st.ns) : ""} ${cur}</span></div>` : "";
+    return `<div class="card">
+      <div class="top"><span class="tag">${m.category}</span><span class="cur ${cur}">${cur}</span></div>
+      <div class="q">${m.question}</div>
+      <div class="prob"><b>${pct.toFixed(0)}%</b><span>implied YES · pool ${fmt(total)} ${cur}</span></div>
+      <div class="bar"><i style="width:${pct}%"></i></div>
+      <div class="meta"><span>Closes ${dateStr(m.closeTime)}</span><span>Resolves ~${dateStr(m.resolveTime)}</span></div>
+      ${myPos}
+      ${open
+        ? `<div class="actions"><button class="byes" onclick="openBet(${id}, true)">Buy YES</button><button class="bno" onclick="openBet(${id}, false)">Buy NO</button></div>`
+        : m.outcome === 0n
+          ? `<div class="resolved">Betting closed — awaiting resolution</div>`
+          : `<div class="resolved">${outcomeStr}</div>${canClaim ? `<button class="claim" onclick="doClaim(${id})">Claim payout</button>` : ""}`}
+    </div>`;
+  }).join("");
+}
+
+async function ensureChain(eth) {
+  try {
+    await eth.request({ method: "wallet_switchEthereumChain", params: [{ chainId: CHAIN_HEX }] });
+  } catch (e) {
+    if (e.code === 4902) {
+      await eth.request({ method: "wallet_addEthereumChain", params: [{
+        chainId: CHAIN_HEX, chainName: "Arc Testnet",
+        nativeCurrency: { name: "USDC", symbol: "USDC", decimals: 18 },
+        rpcUrls: [RPC], blockExplorerUrls: [EXPLORER],
+      }]});
+    } else throw e;
+  }
+}
+
+$("connect").onclick = async () => {
+  if (!window.ethereum) return toast("No wallet found — install MetaMask (or any EVM wallet).");
+  try {
+    await ensureChain(window.ethereum);
+    const bp = new ethers.BrowserProvider(window.ethereum);
+    await bp.send("eth_requestAccounts", []);
+    signer = await bp.getSigner();
+    userAddr = await signer.getAddress();
+    $("connect").textContent = userAddr.slice(0, 6) + "…" + userAddr.slice(-4);
+    $("connect").classList.add("ghost");
+    toast("Connected to Arc testnet");
+    render();
+  } catch (e) { toast("Connect failed: " + (e.shortMessage || e.message)); }
+};
+
+window.openBet = (id, yes) => {
+  if (!signer) return toast("Connect your wallet first.");
+  pending = { id, yes };
+  const { m } = markets.find((x) => x.id === id);
+  $("mq").textContent = m.question;
+  $("mside").textContent = yes ? "YES" : "NO";
+  $("mside").style.color = yes ? "var(--yes)" : "var(--no)";
+  $("mcur").textContent = TOKENS[m.token.toLowerCase()];
+  $("mamount").value = "";
+  $("overlay").classList.add("open");
+  $("mamount").focus();
+};
+$("mcancel").onclick = () => $("overlay").classList.remove("open");
+
+$("mconfirm").onclick = async () => {
+  const amt = parseFloat($("mamount").value);
+  if (!amt || amt <= 0) return toast("Enter an amount.");
+  const { id, yes } = pending;
+  const { m } = markets.find((x) => x.id === id);
+  const units = ethers.parseUnits(String(amt), 6);
+  const cur = TOKENS[m.token.toLowerCase()];
+  try {
+    $("mconfirm").disabled = true;
+    const token = new ethers.Contract(m.token, ERC20_ABI, signer);
+    const bal = await token.balanceOf(userAddr);
+    if (bal < units) throw new Error(`Insufficient ${cur} balance (have ${fmt(bal)}). Get testnet tokens at faucet.circle.com`);
+    const allowance = await token.allowance(userAddr, CONTRACT);
+    if (allowance < units) {
+      toast(`Approving ${cur}…`);
+      await (await token.approve(CONTRACT, units)).wait();
+    }
+    toast("Placing bet…");
+    const writer = new ethers.Contract(CONTRACT, ABI, signer);
+    const tx = await writer.bet(id, yes, units);
+    await tx.wait();
+    toast(`Bet placed: ${amt} ${cur} on ${yes ? "YES" : "NO"} ✓`);
+    $("overlay").classList.remove("open");
+    load();
+  } catch (e) { toast("Failed: " + (e.shortMessage || e.reason || e.message), 8000); }
+  finally { $("mconfirm").disabled = false; }
+};
+
+window.doClaim = async (id) => {
+  try {
+    const writer = new ethers.Contract(CONTRACT, ABI, signer);
+    toast("Claiming…");
+    await (await writer.claim(id)).wait();
+    toast("Payout claimed ✓");
+    load();
+  } catch (e) { toast("Claim failed: " + (e.shortMessage || e.reason || e.message), 8000); }
+};
+
+document.querySelectorAll(".pill").forEach((p) => (p.onclick = () => {
+  document.querySelectorAll(".pill").forEach((x) => x.classList.remove("active"));
+  p.classList.add("active");
+  filter = p.dataset.f;
+  render();
+}));
+
+load();
+setInterval(load, 30000);
+</script>
+</body>
+</html>
