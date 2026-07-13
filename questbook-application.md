@@ -32,7 +32,7 @@ Arc is core to the product, not a deployment target of convenience:
 ## What is already live (traction)
 
 - **Deployed and working on Arc public testnet**: [`0xff95939b9eda771188ae5be523becc2098ffdbe7`](https://testnet.arcscan.app/address/0xff95939b9eda771188ae5be523becc2098ffdbe7)
-- **Live web app**: https://macroarc.gogettest.online
+- **Live web app**: https://letitwork.store
 - **Open-source repo**: https://github.com/danilaverbena/macroarc
 - Five seeded markets across rates / inflation / FX in both USDC and EURC (FOMC, US CPI, ECB deposit rate, EUR/USD, euro-area HICP).
 - Full lifecycle verified onchain: market creation → positions → resolution → claims. Deploy tx: [`0x2140…3e0f`](https://testnet.arcscan.app/tx/0x21405739b3a8d81c5f8942bf9475c9aa09d6259a8efad1be706c052e1fbd3e0f) · lifecycle claim tx: [`0xb751…ac5f`](https://testnet.arcscan.app/tx/0xb7513d27b92b2db27a68ad29f0ba40bdfa82d01bdaead08dc60ac9d8f88dac5f)

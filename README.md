@@ -10,6 +10,7 @@ Built as a direct implementation of Circle's Arc Blueprint ["Build Institutional
 
 | | |
 |---|---|
+| Live app | https://letitwork.store |
 | Contract (MacroMarkets) | [`0xff95939b9eda771188ae5be523becc2098ffdbe7`](https://testnet.arcscan.app/address/0xff95939b9eda771188ae5be523becc2098ffdbe7) |
 | Chain | Arc Testnet, chain ID `5042002` |
 | Settlement tokens | USDC `0x3600…0000` (native gas) · EURC `0x89B5…D72a` |
